@@ -132,6 +132,10 @@ import org.koin.ksp.generated.module
 @ComponentScan
 class AddressModule
 
+// val addressModule = module {             // manual Koin module declaration
+//    factoryOf(::AddressService)
+// }
+    
 fun Application.main() {
     install(Compression)
     install(WebSockets)
