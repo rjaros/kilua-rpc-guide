@@ -34,12 +34,21 @@ plugins {
 }
 ```
 
-You also need to add one of Kilua RPC modules to your `common` dependencies:
+You also need to add one of Kilua RPC modules to your `common` dependencies. A range of modules are available for different servers and different configurations.&#x20;
 
 ```kotlin
 val commonMain by getting {
     dependencies {
+//        implementation("dev.kilua:kilua-rpc-javalin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-javalin-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-jooby:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-jooby-koin:$kiluaRpcVersion")
         implementation("dev.kilua:kilua-rpc-ktor:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-ktor-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-micronaut:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-spring-boot:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-vertx:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-vertx-koin:$kiluaRpcVersion")
     }
 }
 ```
