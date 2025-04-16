@@ -1,4 +1,4 @@
-# Common Code
+# Common code
 
 The `common` sources set is the place where you define how your remote services should work. You can define as many services as you wish, and they can have as many methods as you need. It's a good practice to split your services based on their context and functions.
 
@@ -20,7 +20,7 @@ Kotlin coroutines allow the framework to translate asynchronous calls into synch
 
 #### A method must have from zero to six parameters
 
-This is the restriction of the current version of the framework. It may change in the future.
+This is the restriction of the current version of the library. It may change in the future.
 
 #### A method can't return nullable value
 
@@ -43,7 +43,7 @@ Supported types are:
 Note: Default parameters values are supported.
 {% endhint %}
 
-Even with the above restrictions, the set of supported types is quite rich and you should be able to model almost any use case for your applications. With the help of `@Serializable` annotation you can always wrap any data structure into a serializable data class. It's also a simple way to pass around the parameters count limit.
+Even with the above restrictions, the set of supported types is quite rich and you should be able to model almost any use case for your applications. You can always wrap any data structure into a serializable data class. It's also a simple way to pass around the parameters count limit.
 
 With an interface defined in the common code, the type safety of your whole application is forced at compile time. Any incompatibility between the frontend and the backend code will be marked as a compile-time error.
 
