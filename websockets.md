@@ -1,6 +1,6 @@
 # Websockets
 
-In addition to using RPC-style interfaces, KVision support two-way type-safe connections via websockets, based on [Kotlin coroutines channels](https://kotlinlang.org/docs/reference/coroutines/channels.html).
+Kilua RPC supports two-way type-safe connections via websockets, based on [Kotlin coroutines channels](https://kotlinlang.org/docs/reference/coroutines/channels.html).
 
 ### Common code
 
@@ -57,8 +57,7 @@ You need to manually install WebSockets feature in your main method when using K
 On the backend side you just have to implement the first interface method. It will be automatically called when a new client is connected, and it should run as long as the connection is active.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class WsService : IWsService {
+class WsService : IWsService {
     override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
         for (i in input) {
             output.send("I'v got: $i")
@@ -70,8 +69,7 @@ actual class WsService : IWsService {
 Of course the server can send data to the output channel at any time. So you can even ignore the input at all.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class WsService : IWsService {
+class WsService : IWsService {
     override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
         while(true) {
             val i = Random.nextInt()
@@ -85,43 +83,29 @@ actual class WsService : IWsService {
 If you want to have more control over the client connection and more information about it, you can inject `WebSocketServerSession` when using Ktor module. This object gives you access to, among others, the `ApplicationCall` object.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class WsService : IWsService {
-    @Inject
-    lateinit var wsSession: WebSocketServerSession
-
+class WsService(private val wsSession: WebSocketServerSession) : IWsService {
     override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
         // wsSession.call.request
     }
 }
 ```
 
-When using Spring Boot module, you can autowire `WebSocketSession` object.
+When using Spring Boot module, you can inject `WebSocketSession` object.
 
 ```kotlin
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class WsService : IWsService {
-    @Autowired
-    lateinit var webSocketSession: WebSocketSession
-
+class WsService(private val webSocketSession: WebSocketSession): IWsService {
     override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
         //
     }
 }
 ```
 
-When using Javalin, you can inject `WsContext` and `WsSession` objects.
+When using Javalin, you can inject `WsContext` object.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class WsService : IWsService {
-    @Inject
-    lateinit var wsCtx: WsContext
-    @Inject
-    lateinit var wsSession: Session
-
+class WsService(private val wsCtx: WsContext) : IWsService {
     override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
         //
     }
@@ -132,11 +116,17 @@ With Micronaut you can inject `WebSocketSession` object.
 
 ```kotlin
 @Prototype
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class WsService : IWsService {
-    @Inject
-    lateinit var webSocketSession: WebSocketSession
+class WsService(private val webSocketSession: WebSocketSession) : IWsService {
+    override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
+        //
+    }
+}
+```
 
+With Vert.x you can inject `ServerWebSocket` object.
+
+```kotlin
+class WsService(private val serverWebSocket: ServerWebSocket) : IWsService {
     override suspend fun wservice(input: ReceiveChannel<Int>, output: SendChannel<String>) {
         //
     }
