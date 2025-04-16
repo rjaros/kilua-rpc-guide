@@ -1,6 +1,6 @@
 # Overview
 
-This is a short overview of how to use Kilua RPC with the real example. It contains just the basic concepts and ideas. You can find more information in the following chapters.
+This is a short overview of how to use Kilua RPC. It contains just the basic concepts and ideas. You can find more information in the following chapters.
 
 Let's assume we want to create an encoder application, that gets some text from the user and encodes it on the server with a chosen algorithm.
 
@@ -11,6 +11,7 @@ We start by defining our data model and service interface in the common (shared)
 {% code title="Common.kt" %}
 ```kotlin
 import dev.kilua.rpc.annotations.RpcService
+import kotlinx.serialization.Serializable
 
 @Serializable
 enum class EncodingType {
@@ -34,14 +35,14 @@ import dev.kilua.rpc.getService
 
 val service = getService<IEncodingService>()
 
-GlobalScope.launch {
-    val result = service.encode("Some content", EncodingType.BASE64)
-    console.log(result) // outputs U29tZSBjb250ZW50Cg==
+launch {
+    val result = service.encode("Lorem ipsum", EncodingType.BASE64)
+    console.log(result) // outputs TG9yZW0gaXBzdW0K
 }
 ```
 {% endcode %}
 
-Notice we just call the `encode` method and get the result value directly. All asynchronous operations are hidden by the framework. We only have to use a coroutine builder function (`launch` in this case).
+All asynchronous operations are hidden by the framework. We only have to use a coroutine builder (`launch` in this case) to run a suspending function.
 
 ### Backend source set
 
@@ -99,3 +100,5 @@ fun Application.main() {
 When we run our application everything will work automatically - a call on the client side will run the code on the server and the result will be sent back to the caller.
 
 That's all - our first, fullstack application is ready!
+
+You can find "encoder-fullstack-ktor", a complete KVision application based on this overview (with GUI components), in the [kvision-examples](https://github.com/rjaros/kvision-examples) repository on GitHub.
