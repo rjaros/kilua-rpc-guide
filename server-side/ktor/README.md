@@ -1,61 +1,33 @@
 # Ktor
 
-[Ktor](https://ktor.io/) is the asynchronous web framework for Kotlin created by JetBrains. It is written in Kotlin and its machinery and API is utilizing Kotlin coroutines. It's unopinionated design makes it a very good choice for development of applications composed of many different technologies. Since both Ktor and KVision are based on coroutines, the plugging of KVision's server module into Ktor's pipeline is executed in a natural and efficient way.
+[Ktor](https://ktor.io/) is the asynchronous web framework for Kotlin created by JetBrains. It is written in Kotlin and its machinery and API is utilizing Kotlin coroutines. It's unopinionated design makes it a very good choice for development of applications composed of many different technologies.
 
 ## Build configuration
 
-The integration with Ktor is contained in the `kvision-server-ktor` module. It has to be added as the dependency in the common target. This module depends on the `ktor-server-core`, `ktor-serialization`, and `guice` libraries. Any other dependencies can be added to `build.gradle.kts` and then be used in your application.
+Kilua RPC provides two different modules for Ktor:
 
-{% code title="build.gradle.kts" %}
+* `kilua-rpc-ktor`, which doesn't use dependency injection (DI) and requires manual services registration,
+* `kilua-rpc-ktor-koin`, which uses [Koin](https://insert-koin.io/) dependency injection framework to access services implementations.
+
+You need to add one of these modules to your project.
+
 ```kotlin
-dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-auth:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("com.h2database:h2:$h2Version")
-    implementation("org.jetbrains.exposed:exposed:$exposedVersion")
-    implementation("org.postgresql:postgresql:$pgsqlVersion")
-    implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("commons-codec:commons-codec:$commonsCodecVersion")
-    implementation("com.axiomalaska:jdbc-named-parameters:$jdbcNamedParametersVersion")
-    implementation("com.github.andrewoma.kwery:core:$kweryVersion")
+val commonMain by getting {
+    dependencies {
+        implementation("dev.kilua:kilua-rpc-ktor:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-ktor-koin:$kiluaRpcVersion")
+    }
 }
 ```
-{% endcode %}
 
-{% hint style="info" %}
-Note: You can use other engines instead of Netty - see [Ktor documentation](https://ktor.io/docs/engines.html). Remember to add the appropriate dependency.
-{% endhint %}
-
-## Application configuration
-
-The standard way to configure Ktor application is `src/jvmMain/resources/application.conf` file. Among other options it contains the name of the main function of your app.
-
-{% code title="application.conf" %}
-```
-ktor {
-  deployment {
-    port = 8080
-    watch = [server/build/classes]
-  }
-  application {
-    modules = [com.example.MainKt.main]
-  }
-}
-```
-{% endcode %}
-
-## Implementation
+## Service implementation
 
 ### Service class
 
 The implementation of the service class comes down to implementing required interface methods.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
+class AddressService : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         return listOf()
     }
@@ -71,41 +43,38 @@ actual class AddressService : IAddressService {
 }
 ```
 
-The integration module utilizes [Guice](https://github.com/google/guice) and you can access external components and resources by injecting server objects into your class. KVision allows you to inject `Application` and `ApplicationCall` instances. These objects give you access to the application configuration, its state, the current request and the user session (if it is configured).
+You can use `@Factory` annotation, if you use Koin and `koin-annotations` to configure dependency injection.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
-    @Inject
-    lateinit var application: Application
-    @Inject
-    lateinit var call: ApplicationCall
+@Factory
+class AddressService : IAddressService {
+    // ...
+}
+```
 
+### Injecting server objects
+
+You can use constructor parameters to inject server objects - `ApplicationCall` and `WebSocketServerSession` into your service classes. These objects give you access to the application configuration, its state, the current request and the user session (if it is configured).
+
+```kotlin
+class AddressService(private val call: ApplicationCall) : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
-        println(application.environment.config.propertyOrNull("option1")?.getString())
-        println(application.attributes)
+        println(call.application.environment.config.propertyOrNull("option1")?.getString())
+        println(call.application.attributes)
         println(call.request.uri)
         println(call.request.queryParameters["param1"])
         println(call.sessions)
         return listOf()
     }
-    // ...
 }
 ```
-
-You can also inject other Guice components, defined in your application and configured in custom Guice modules or with [just-in-time bindings](https://github.com/google/guice/wiki/JustInTimeBindings).
-
-{% hint style="info" %}
-Note: The new instance of the service class will be created by Guice for every server request. Use application, session or call objects to store your state with appropriate scope.
-{% endhint %}
 
 ### **Blocking code**
 
 Since Ktor architecture is asynchronous and non-blocking, you should **never** block a thread in your application code. If you have to use some blocking code (e.g. blocking I/O, JDBC) always use the dedicated coroutine dispatcher.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
+class AddressService : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         return withContext(Dispatchers.IO) {
             retrieveAddressesFromDatabase(search, sort)
@@ -114,64 +83,71 @@ actual class AddressService : IAddressService {
 }
 ```
 
+## Application configuration
+
 ### The main function
 
-This function is the application starting point. It's used to initialize and configure application modules and features. Minimal implementation for KVision integration contains `kvisionInit` and `applyRoutes` function calls. `kvisionInit` function should be executed as last.
+This function is the application starting point. It's used to initialize and configure application modules and features. Minimal implementation for Kilua RPC integration contains `initRpc` and `applyRoutes` function calls. `initRpc` function should be executed as last.
+
+When using manual service registration you call `initRpc` with a lambda function, which binds the interface with its implementation. Different overloads of `registerService` function allow injecting server objects into your classes.
 
 ```kotlin
-import io.ktor.application.Application
-import io.ktor.routing.routing
-import io.kvision.remote.applyRoutes
-import io.kvision.remote.getServiceManager
-import io.kvision.remote.kvisionInit
+import dev.kilua.rpc.applyRoutes
+import dev.kilua.rpc.getServiceManager
+import dev.kilua.rpc.initRpc
+import dev.kilua.rpc.registerService
+import io.ktor.server.application.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 
 fun Application.main() {
+    install(Compression)
+    install(WebSockets)
     routing {
         applyRoutes(getServiceManager<IAddressService>())
     }
-    kvisionInit()
+    initRpc {
+        registerService<IAddressService> { AddressService() }
+//        registerService<IAddressService> { call -> AddressService(call) }
+    }
 }
 ```
 
-The `kvisionInit` function can take multiple parameters of type `com.google.inject.Module`. It allows you to register custom modules inside the main Guice injector.
+When using Koin you call `initRpc` with a list of Koin modules. Constructor parameter injection is automatically supported by Koin.
 
 ```kotlin
+import dev.kilua.rpc.applyRoutes
+import dev.kilua.rpc.getServiceManager
+import dev.kilua.rpc.initRpc
+import io.ktor.server.application.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Module
+import org.koin.ksp.generated.module
+
+@Module
+@ComponentScan
+class AddressModule
+
 fun Application.main() {
+    install(Compression)
+    install(WebSockets)
     routing {
         applyRoutes(getServiceManager<IAddressService>())
     }
-    kvisionInit(HelloModule())
-}
-
-class HelloModule() : AbstractModule() {
-    override fun configure() {}
-
-    @Provides
-    @Singleton
-    @Named("hello-message")
-    fun helloMessage(): String = "Hello from Guice"
+    initRpc(AddressModule().module)
 }
 ```
-
-Apart from the above KVision configuration you are free to use any other module or feature of the Ktor framework.
 
 ### Authentication
 
-When using [authentication feature](https://ktor.io/servers/features/authentication.html) you can choose where to apply KVision routes for different services.
+When using [authentication plugin](https://ktor.io/docs/server-auth.html) you can choose different authentication options for different services.
 
 ```kotlin
 fun Application.main() {
-    install(Compression)
-    install(DefaultHeaders)
-    install(CallLogging)
-    install(Sessions) {
-        cookie<Profile>("KTSESSION", storage = SessionStorageMemory()) {
-            cookie.path = "/"
-            cookie.extensions["SameSite"] = "strict"
-        }
-    }
-    Db.init(environment.config)
-
     install(Authentication) {
         form {
             userParamName = "username"
@@ -197,6 +173,8 @@ fun Application.main() {
             applyRoutes(getServiceManager<IProfileService>()) // Authentication needed
         }
     }
-    kvisionInit()
+    initRpc {
+       // ...
+    }
 }
 ```
