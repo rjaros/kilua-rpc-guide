@@ -1,13 +1,12 @@
 # Exception Handling
 
-When the backend code throws an unhandled exception, it will be logged on the server side and then propagated by KVision to the frontend side. There are of course many different classes of exceptions on the JVM and it's not possible to transform those types directly to the JS side. So only the exception message is propagated and the generic `Exception` object is created on the frontend side.&#x20;
+When the backend code throws an unhandled exception, it will be logged on the server side and then propagated by Kilua RPC to the frontend side. There are of course many different classes of exceptions on the JVM and it's not possible to transform those types directly to the JS or WasmJS side. So only the exception message is propagated and the generic `Exception` object is created on the frontend side.&#x20;
 
-There is a special `io.kvision.remote.ServiceException` class defined in common KVision code. Unlike all other exception classes this one will be propagated directly from `ServiceException` to `ServiceException` and will not be logged on the backend side. It should be used as typical business error indication.
+There is a special `dev.kilua.rpc.ServiceException` class defined in common Kilua RPC code. Unlike all other exception classes this one will be propagated directly from `ServiceException` to `ServiceException` and will not be logged on the backend side. It should be used as a typical business error indication.
 
 {% code title="Backend.kt" %}
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class PasswordService : IPasswordService {
+class PasswordService : IPasswordService {
     override suspend fun changePassword(oldPassword: String, newPassword: String) {
         if (oldPassword == newPassword) {
             throw ServiceException("You should really change your password")
@@ -20,7 +19,7 @@ actual class PasswordService : IPasswordService {
 
 {% code title="Frontend.kt" %}
 ```kotlin
-val passwordService = PasswordService()
+val passwordService = getService<IPasswordService>()
 try {
     passwordService.changePassword(oldPassword, newPassword)
 } catch (e: ServiceException) {
@@ -31,13 +30,13 @@ try {
 
 ## User-defined exceptions
 
-Since KVision 5.8.2 it is possible to define custom exception types in the common module, that will be propagated from the backend to the fronted side. Such exceptions need to inherit from `AbstractServiceException` and need to be annotated with `@KVServiceException` annotation.
+It is possible to define custom exception types in the common module, that will be propagated from the backend to the fronted side. Such exceptions need to inherit from `AbstractServiceException` and need to be annotated with `@RpcServiceException` annotation.
 
 ```kotlin
-@KVServiceException
+@RpcServiceException
 class MyFirstException(override val message: String) : AbstractServiceException()
 
-@KVServiceException
+@RpcServiceException
 class MySecondException(override val message: String) : AbstractServiceException()
 ```
 
