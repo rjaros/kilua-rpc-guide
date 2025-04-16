@@ -1,12 +1,24 @@
 # Setting Up
 
-KVision supports six server-side frameworks - Ktor, Jooby, Spring Boot, Javalin, Vert.x and Micronaut - so you have to choose one of them for your needs. It's worth to mention, that common and js targets of your application are exactly the same for all three servers, as well as the greater part of the actual service implementation in the jvm target. The differences are tied to initialization code and additional server side functionalities (e.g. authentication).
+Kilua RPC supports different server-side frameworks - Ktor, Jooby, Spring Boot, Javalin, Vert.x and Micronaut - so you have to choose one of them for your needs. It's worth to mention, that common and js/wasmJs code of your application are exactly the same for all servers, as well as the greater part of the actual service implementation for the jvm target. The differences are tied to initialization code and additional server side functionalities (e.g. authentication).
 
-KVision fullstack applications utilize [Kotlin multiplatform](https://kotlinlang.org/docs/reference/multiplatform.html) architecture. To start, it's best to just clone one of the template-fullstack projects from [kvision-examples](https://github.com/rjaros/kvision-examples) GitHub repository or use [KVision Project Wizard](https://plugins.jetbrains.com/plugin/16533-kvision-project-wizard).
+## Requirements
 
-The application sources are split into three source sets - `common`, `js` and `jvm`, located in three directories: `src/commonMain` `src/jsMain` and `src/jvmMain`. The requirements and dependencies for the build process are the same as mentioned in [Part 1 of this guide](broken-reference).
+You need JDK 21 to build Kilua RPC application. Your project should use standard Kotlin multiplatform layout, with separate sources sets for `common`, `jvm` and `js` and/or `wasmJs` code, located in separate directories: `src/commonMain` , `src/jvmMain`  and `src/jsMain` and/or `src/wasmJsMain`. You can also declare a shared `src/webMain` sources set if you want do develop for both `js` and `wasmJs` targets:
 
-Since version 2.0 you can use KVision compiler plugin to generate code in the common and js modules. You can still create this code by hand, but it's definitely easier to use the plugin. &#x20;
+```kotlin
+val webMain by creating {
+    dependsOn(commonMain)
+    dependencies {
+    }
+}
+val jsMain by getting {
+    dependsOn(webMain)
+}
+val wasmJsMain by getting {
+    dependsOn(webMain)
+}
+```
 
 ## Development
 
