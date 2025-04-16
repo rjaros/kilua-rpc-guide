@@ -1,7 +1,6 @@
 # Table of contents
 
 * [Kilua RPC guide](README.md)
-* [Introduction](introduction.md)
 * [Overview](overview.md)
 * [Setting Up](setting-up-1.md)
 * [Common Code](common-code.md)
