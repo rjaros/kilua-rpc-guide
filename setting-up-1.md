@@ -4,7 +4,7 @@ KVision supports six server-side frameworks - Ktor, Jooby, Spring Boot, Javalin,
 
 KVision fullstack applications utilize [Kotlin multiplatform](https://kotlinlang.org/docs/reference/multiplatform.html) architecture. To start, it's best to just clone one of the template-fullstack projects from [kvision-examples](https://github.com/rjaros/kvision-examples) GitHub repository or use [KVision Project Wizard](https://plugins.jetbrains.com/plugin/16533-kvision-project-wizard).
 
-The application sources are split into three source sets - `common`, `js` and `jvm`, located in three directories: `src/commonMain` `src/jsMain` and `src/jvmMain`. The requirements and dependencies for the build process are the same as mentioned in [Part 1 of this guide](../1.-getting-started-1/setting-up.md).
+The application sources are split into three source sets - `common`, `js` and `jvm`, located in three directories: `src/commonMain` `src/jsMain` and `src/jvmMain`. The requirements and dependencies for the build process are the same as mentioned in [Part 1 of this guide](broken-reference).
 
 Since version 2.0 you can use KVision compiler plugin to generate code in the common and js modules. You can still create this code by hand, but it's definitely easier to use the plugin. &#x20;
 
