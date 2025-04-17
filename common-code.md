@@ -3,14 +3,14 @@
 The `common` sources set is the place where you define how your remote services should work. You can define as many services as you wish, and they can have as many methods as you need. It's a good practice to split your services based on their context and functions.
 
 {% hint style="info" %}
-Note: When using authentication on the server side, you can usually apply different authentication options to different services.
+Note: When using authentication on the server side, you can usually apply different security options to different services.
 {% endhint %}
 
 ### Declaring an interface
 
 Designing the interface is probably the most important step, and during this process you have to stick to some important rules.
 
-#### An interface name must be annotated with `@RpcService` annotation.
+#### An interface must be annotated with `@RpcService` annotation.
 
 Kilua RPC compiler plugin will generate common, backend and frontend code based on the interface name.
 
