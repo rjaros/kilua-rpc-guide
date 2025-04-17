@@ -28,8 +28,6 @@ This is the restriction of the current version of the library. It may change in 
 
 #### Method parameters and return value must be of supported types
 
-Supported types are:
-
 * all basic Kotlin types (`String`, `Boolean`, `Int`, `Long`, `Short`, `Char`, `Byte`, `Float`, `Double`)
 * `Enum` classes defined in common code and annotated with `@Serializable` annotation
 * All date and time types from `kotlinx-datetime` library
