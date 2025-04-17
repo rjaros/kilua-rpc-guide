@@ -91,7 +91,7 @@ When using manual service registration, you call `initRpc` with a lambda functio
 
 ```kotlin
 import dev.kilua.rpc.applyRoutes
-import dev.kilua.rpc.getAllServiceManagers
+import dev.kilua.rpc.getServiceManager
 import dev.kilua.rpc.initRpc
 import dev.kilua.rpc.registerService
 import io.jooby.kt.runApp
@@ -112,7 +112,7 @@ When using Koin, you call `initRpc` with a list of Koin modules. Constructor par
 
 ```kotlin
 import dev.kilua.rpc.applyRoutes
-import dev.kilua.rpc.getAllServiceManagers
+import dev.kilua.rpc.getServiceManager
 import dev.kilua.rpc.initRpc
 import io.jooby.kt.runApp
 import org.koin.core.annotation.ComponentScan

@@ -4,35 +4,30 @@
 
 ## Build configuration
 
-The integration with Javalin is contained in the `kvision-server-javalin` module. It has to be added as the dependency in the common target. This module depends on the`jackson-module-kotlin` and `guice` libraries. Any other dependencies can be added to `build.gradle.kts` and then be used in your application.
+Kilua RPC provides two different modules for Javalin:
 
-{% code title="build.gradle.kts" %}
+* `kilua-rpc-javalin`, which doesn't use dependency injection (DI) and requires manual services registration,
+* `kilua-rpc-javalin-koin`, which uses [Koin](https://insert-koin.io/) dependency injection framework to access services implementations.
+
+You need to add one of these modules to your project.
+
 ```kotlin
-dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
-    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
-    implementation("com.h2database:h2:$h2Version")
-    implementation("org.jetbrains.exposed:exposed:$exposedVersion")
-    implementation("org.postgresql:postgresql:$pgsqlVersion")
-    implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("commons-codec:commons-codec:$commonsCodecVersion")
-    implementation("com.axiomalaska:jdbc-named-parameters:$jdbcNamedParametersVersion")
-    implementation("com.github.andrewoma.kwery:core:$kweryVersion")
-    implementation("net.jmob:guice.conf:$guiceConfVersion")
+val commonMain by getting {
+    dependencies {
+        implementation("dev.kilua:kilua-rpc-javalin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-javalin-koin:$kiluaRpcVersion")
+    }
 }
 ```
-{% endcode %}
 
-## Implementation
+## Service implementation
 
 ### Service class
 
 The implementation of the service class comes down to implementing required interface methods.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
+class AddressService : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         return listOf()
     }
@@ -48,50 +43,82 @@ actual class AddressService : IAddressService {
 }
 ```
 
-The integration module utilizes [Guice](https://github.com/google/guice) and you can access external components and resources by injecting object instances into your class. KVision allows you to inject `Javalin` instance, which give you access to the application configuration and also `Context` object, which allows you to access the current request and session information.
+You can use `@Factory` annotation, if you use Koin and `koin-annotations` to configure dependency injection.
 
 ```kotlin
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
-    
-    @Inject
-    lateinit var javalin: Javalin
-    @Inject
-    lateinit var ctx: Context
+@Factory
+class AddressService : IAddressService {
+    // ...
+}
+```
 
+### Injecting server objects
+
+You can use constructor parameters to inject server objects - `Context` , `Javalin` and `WsContext` (see [Websockets](../websockets.md) chapter) into your service classes. These objects give you access to the application configuration, its state, the current request and the user session.
+
+```kotlin
+class AddressService(val ctx: Context) : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         println(ctx.req.remoteAddr)
         println(ctx.req.session.id)
         return listOf()
     }
-    // ...
 }
 ```
 
-You can also inject other Guice components, defined in your application and configured in custom Guice modules or with [just-in-time bindings](https://github.com/google/guice/wiki/JustInTimeBindings).
-
-{% hint style="info" %}
-Note: The new instance of the service class will be created by Guice for every server request. Use session or request objects to store your state with appropriate scope.
-{% endhint %}
+## Application configuration
 
 ### The main function
 
-This function is the application starting point. It's used to initialize and configure the application. Minimal implementation for KVision integration contains `kvisionInit` and `applyRoutes` function calls.
+This function is the application starting point. It's used to initialize and configure application modules and features. Minimal implementation for Kilua RPC integration contains `initRpc` and `applyRoutes` function calls.
+
+When using manual service registration, you call `initRpc` with a lambda function, which binds  interfaces with their implementations. Different overloads of `registerService` function allow injecting server objects into your service classes.
 
 ```kotlin
+import dev.kilua.rpc.applyRoutes
+import dev.kilua.rpc.getServiceManager
+import dev.kilua.rpc.initRpc
+import dev.kilua.rpc.registerService
 import io.javalin.Javalin
-import io.kvision.remote.applyRoutes
-import io.kvision.remote.kvisionInit
 
 fun main() {
     Javalin.create().start(8080).apply {
-        kvisionInit()
+        initRpc {
+            registerService<IAddressService> { AddressService() }
+        }
         applyRoutes(getServiceManager<IAddressService>())
     }
 }
 ```
 
-### Authentication
+When using Koin, you call `initRpc` with a list of Koin modules. Constructor parameter injection is automatically supported by Koin.
+
+```kotlin
+import dev.kilua.rpc.applyRoutes
+import dev.kilua.rpc.getServiceManager
+import dev.kilua.rpc.initRpc
+import io.javalin.Javalin
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Module
+import org.koin.ksp.generated.module
+
+@Module
+@ComponentScan
+class AddressModule
+
+// val addressModule = module {             // manual Koin module declaration
+//    factoryOf(::AddressService)
+// }
+
+fun main() {
+    Javalin.create().start(8080).apply {
+        initRpc(AddressModule().module)
+        applyRoutes(getServiceManager<IAddressService>())
+    }
+}
+```
+
+### Security
 
 When configuring security with `AccessManager` you can call `applyRoutes` with additional parameter containing roles.
 
