@@ -54,10 +54,10 @@ class AddressService : IAddressService {
 
 ### Injecting server objects
 
-You can use constructor parameters to inject server objects - `ApplicationCall` and `WebSocketServerSession` into your service classes. These objects give you access to the application configuration, its state, the current request and the user session (if it is configured).
+You can use constructor parameters to inject server objects - `ApplicationCall` and `WebSocketServerSession` (see [Websockets](../websockets.md) chapter) into your service classes. These objects give you access to the application configuration, its state, the current request and the user session (if it is configured).
 
 ```kotlin
-class AddressService(private val call: ApplicationCall) : IAddressService {
+class AddressService(val call: ApplicationCall) : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         println(call.application.environment.config.propertyOrNull("option1")?.getString())
         println(call.application.attributes)
@@ -89,7 +89,7 @@ class AddressService : IAddressService {
 
 This function is the application starting point. It's used to initialize and configure application modules and features. Minimal implementation for Kilua RPC integration contains `initRpc` and `applyRoutes` function calls. `initRpc` function should be executed as last.
 
-When using manual service registration you call `initRpc` with a lambda function, which binds the interface with its implementation. Different overloads of `registerService` function allow injecting server objects into your classes.
+When using manual service registration, you call `initRpc` with a lambda function, which binds  interfaces with their implementations. Different overloads of `registerService` function allow injecting server objects into your service classes.
 
 ```kotlin
 import dev.kilua.rpc.applyRoutes
@@ -110,11 +110,12 @@ fun Application.main() {
     initRpc {
         registerService<IAddressService> { AddressService() }
 //        registerService<IAddressService> { call -> AddressService(call) }
+//        registerService<IAddressService> { call, wsss -> AddressService(call, wsss) }
     }
 }
 ```
 
-When using Koin you call `initRpc` with a list of Koin modules. Constructor parameter injection is automatically supported by Koin.
+When using Koin, you call `initRpc` with a list of Koin modules. Constructor parameter injection is automatically supported by Koin.
 
 ```kotlin
 import dev.kilua.rpc.applyRoutes
@@ -146,9 +147,9 @@ fun Application.main() {
 }
 ```
 
-### Authentication
+### Security
 
-When using [authentication plugin](https://ktor.io/docs/server-auth.html) you can choose different authentication options for different services.
+When using [authentication plugin](https://ktor.io/docs/server-auth.html) you can choose different security options for different services by calling `applyRoutes` in different contexts.
 
 ```kotlin
 fun Application.main() {
