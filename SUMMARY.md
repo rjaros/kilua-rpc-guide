@@ -10,7 +10,6 @@
   * [Spring Boot](backend-side/spring-boot.md)
   * [Javalin](backend-side/javalin.md)
   * [Vert.x](backend-side/vert-x.md)
-  * [Vert.x  old](backend-side/vert.x-old.md)
   * [Micronaut](backend-side/micronaut.md)
 * [Frontend side](frontend-side.md)
 * [Websockets](websockets.md)

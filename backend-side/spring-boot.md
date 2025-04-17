@@ -66,7 +66,7 @@ Note: The new instance of the service class will be created by Spring for every 
 
 ### **Blocking code**
 
-Since Spring WebFlux architecture is asynchronous and non-blocking,, you should **never** block a thread in your application code. If you have to use some blocking code (e.g. blocking I/O, JDBC) always use the dedicated coroutine dispatcher.
+Since Spring WebFlux architecture is asynchronous and non-blocking, you should **never** block a thread in your application code. If you have to use some blocking code (e.g. blocking I/O, JDBC) always use the dedicated coroutine dispatcher.
 
 ```kotlin
 @Service
