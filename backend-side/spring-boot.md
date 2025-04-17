@@ -4,40 +4,26 @@
 
 ## Build configuration
 
-The integration with Spring Boot is contained in the `kvision-server-spring-boot` module. It has to be added as the dependency in the common target. This module depends on the `spring-boot-starter`, `spring-boot-starter-webflux`, `spring-boot-starter-security` and `spring-data-relational`. Any other dependencies can be added to `build.gradle.kts` and then be used in your application.
+Kilua RPC provides a single module for Spring Boot, `kilua-rpc-spring-boot`, which uses Spring dependency injection to access services implementations. You need to add this module to your project.
 
-{% code title="build.gradle.kts" %}
 ```kotlin
-dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.boot:spring-boot-devtools")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot.experimental:spring-boot-actuator-autoconfigure-r2dbc:$springAutoconfigureR2dbcVersion")
-    implementation("org.springframework.data:spring-data-r2dbc:$springDataR2dbcVersion")
-    implementation("io.r2dbc:r2dbc-postgresql:$r2dbcPostgresqlVersion")
-    implementation("io.r2dbc:r2dbc-h2:$r2dbcH2Version")
+val commonMain by getting {
+    dependencies {
+        implementation("dev.kilua:kilua-rpc-spring-boot:$kiluaRpcVersion")
+    }
 }
 ```
-{% endcode %}
 
-## Application configuration
-
-The standard way to configure Spring Boot application is `src/jvmMain/resources/application.yml` file. It contains options needed for optional dependencies. It can be empty if they are not used.
-
-## Implementation
+## Service implementation
 
 ### Service class
 
-The implementation of the service class comes down to implementing required interface methods and making it a Spring component by using a `@Service` annotation with a "prototype" scope.&#x20;
+The implementation of the service class comes down to implementing required interface methods and making it a Spring component by using a `@Service` annotation with a "prototype" scope.
 
 ```kotlin
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
+class AddressService : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         return listOf()
     }
@@ -53,33 +39,15 @@ actual class AddressService : IAddressService {
 }
 ```
 
-Spring IoC (Inversion of Control) allows you to inject resources and other Spring components into your service class. You can use standard Spring `@Autowired` annotation or constructor based injection.
+### Injecting server objects
 
-```kotlin
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
-    @Autowired
-    lateinit var env: Environment
+Spring IoC (Inversion of Control) allows you to inject resources and other Spring components into your service class. You can use standard Spring `@Autowired` annotation or constructor parameter injection.
 
-    override suspend fun getAddressList(search: String?, sort: Sort) {
-        println(env.getProperty("option1", "default"))
-        return listOf()
-    }
-    // ...
-}
-```
+Kilua RPC allows you to inject `ServerRequest` and `HeadersBuilder<BodyBuilder>` objects, which give you access to the request parameters, user session and response headers.
 
-You can also inject custom Spring components, defined throughout your application.
-
-KVision allows you to inject `ServerRequest` object, which gives you access to the user session as well.
-
-```kotlin
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
+<pre class="language-kotlin"><code class="lang-kotlin"><strong>@Service
+</strong>@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+class AddressService : IAddressService {
 
     @Autowired
     lateinit var serverRequest: ServerRequest
@@ -89,9 +57,8 @@ actual class AddressService : IAddressService {
         println(serverRequest.session().awaitSingle().id)
         return listOf()
     }
-    // ...
 }
-```
+</code></pre>
 
 {% hint style="info" %}
 Note: The new instance of the service class will be created by Spring for every server request. Use session or request objects to store your state with appropriate scope.
@@ -99,13 +66,12 @@ Note: The new instance of the service class will be created by Spring for every 
 
 ### **Blocking code**
 
-Since Spring WebFlux architecture is asynchronous and non-blocking, you should not block threads in your application code. If you have to use some blocking code (e.g. blocking I/O, JDBC) use the dedicated coroutine dispatcher.
+Since Spring WebFlux architecture is asynchronous and non-blocking,, you should **never** block a thread in your application code. If you have to use some blocking code (e.g. blocking I/O, JDBC) always use the dedicated coroutine dispatcher.
 
 ```kotlin
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class AddressService : IAddressService {
+class AddressService : IAddressService {
     override suspend fun getAddressList(search: String?, sort: Sort) {
         return withContext(Dispatchers.IO) {
             retrieveAddressesFromDatabase(search, sort)
@@ -114,37 +80,30 @@ actual class AddressService : IAddressService {
 }
 ```
 
-### Application class
+## Application configuration
 
-To allow KVision work with Spring Boot you have to pass all instances of the `KVServiceManager` objects (defined in common code) to the Spring environment. You do this by defining a provider method for the `List<KVServiceManager<Any>>` instance in the main application class.
+### The application class
 
-{% hint style="info" %}
-Use `@EnableAutoConfiguration` annotation to disable security if your app doesn't need it.
-{% endhint %}
+To allow Kilua RPC work with Spring Boot you have to pass all instances of the `RpcServiceManager` objects (defined in common code) to the Spring environment. You do this by defining a provider method for the `List<RpcServiceManager<Any>>` instance in the main application class. You can use `getAllServiceManagers()` method to simplify your code.
 
 ```kotlin
+import dev.kilua.rpc.getAllServiceManagers
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 
 @SpringBootApplication
-@EnableAutoConfiguration(
-    exclude = [
-        org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration::class,
-        org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration::class
-    ]
-)
-class KVApplication {
+class RpcApplication {
     @Bean
-    fun getManagers() = listOf(getServiceManager<IAddressService>())
+    fun getManagers() = getAllServiceManagers()
 }
 
 fun main(args: Array<String>) {
-    runApplication<KVApplication>(*args)
+    runApplication<RpcApplication>(*args)
 }
 ```
 
-### Authentication
+### Security
 
 You can use standard Spring WebFlux Security configuration, and with a help of `serviceMatchers` extension function, you can automatically select endpoints that should be secured.
 
@@ -194,3 +153,4 @@ class SecurityConfiguration {
     }
 }
 ```
+
