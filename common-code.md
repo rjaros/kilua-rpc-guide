@@ -35,7 +35,8 @@ You will get a compilation error if this rule is not met.
 * any class defined in common code with a `@Serializable` annotation
 * a `List<T>`, where T is one of the above types
 * a `T?`, where T is one of the above types (allowed only as method parameters - see previous rule)
-* a `Result<T>`, where T is one of the above types, can be used as a method return value.
+* a `Result<T>`, where T is one of the above types, can be used as a method return value
+* a `Unit` can be used as a method return value.
 
 {% hint style="info" %}
 Note: Default parameters values are supported.
