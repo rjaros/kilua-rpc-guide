@@ -24,7 +24,7 @@ This is the restriction of the current version of the library. It may change in 
 
 #### A method can't return nullable value
 
-`Unit` return type is not supported as well.
+You will get a compilation error if this rule is not met.
 
 #### Method parameters and return value must be of supported types
 
