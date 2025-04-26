@@ -1,4 +1,4 @@
-# Setting Up
+# Setting up
 
 Kilua RPC supports different server-side frameworks - Ktor, Jooby, Spring Boot, Javalin, Vert.x and Micronaut - so you have to choose one of them for your needs. It's worth to mention, that `common` and `js`/`wasmJs` code of your application are exactly the same for all servers, as well as the greater part of the actual service implementation for the `jvm` target. The differences are tied to initialization code and additional server side functionalities (e.g. authentication).
 
@@ -105,3 +105,7 @@ The application "fat" jar will be saved in `build/libs` directory (`projectname-
 ```
 java -jar build/libs/projectname-1.0.0-SNAPSHOT.jar
 ```
+
+{% hint style="info" %}
+You can change the name of the generated jar file by setting \``` dev.kilua.rpc.plugin.jarArchiveFileName` `` property in your `gradle.properties` file.
+{% endhint %}
