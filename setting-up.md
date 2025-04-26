@@ -107,5 +107,5 @@ java -jar build/libs/projectname-1.0.0-SNAPSHOT.jar
 ```
 
 {% hint style="info" %}
-You can change the name of the generated jar file by setting \``` dev.kilua.rpc.plugin.jarArchiveFileName` `` property in your `gradle.properties` file.
+You can change the name of the generated jar file by setting `dev.kilua.rpc.plugin.jarArchiveFileName` property in your `gradle.properties` file.
 {% endhint %}
