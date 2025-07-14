@@ -1,9 +1,5 @@
 # Micronaut
 
-{% hint style="info" %}
-Note: Micronaut support is temporarily disabled because of dependencies conflicts and no KSP2 support.
-{% endhint %}
-
 [Micronaut](https://micronaut.io) is a modern, JVM-based, fullstack framework for building modular, easily testable microservice and serverless applications. Micronaut provides a simple compile-time aspect-oriented programming API, which is very similar to Spring, but does not use reflection.
 
 ## Build configuration

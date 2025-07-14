@@ -8,7 +8,7 @@ description: >-
 
 ## [Kilua RPC guide](https://kilua.gitbook.io/kilua-rpc-guide/)
 
-Current version: 0.0.34
+Current version: 0.0.35
 
 Kilua RPC is a powerful Remote Procedure Call (RPC) library designed for fullstack applications created with the Kotlin programming language. Is can be used with frontend apps developed for [Kotlin/Wasm](https://kotlinlang.org/docs/wasm-overview.html) and [Kotlin/JS](https://kotlinlang.org/docs/js-overview.html) targets. On the backend side different popular Kotlin/JVM web frameworks are fully supported:
 
@@ -17,6 +17,6 @@ Kilua RPC is a powerful Remote Procedure Call (RPC) library designed for fullsta
 * [Spring Boot](https://spring.io/projects/spring-boot)
 * [Javalin](https://javalin.io)
 * [Vert.x](https://vertx.io)
-* [Micronaut](https://micronaut.io) (temporarily disabled)
+* [Micronaut](https://micronaut.io)
 
 Kilua RPC can be used with all Kotlin/JS and Kotlin/Wasm web frameworks to easily build fullstack applications with shared code for data model and business logic. It's already integrated with [Kilua](https://kilua.dev) and [KVision](https://kvision.io).
