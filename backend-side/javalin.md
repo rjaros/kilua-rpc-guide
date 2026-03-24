@@ -54,7 +54,7 @@ class AddressService : IAddressService {
 
 ### Injecting server objects
 
-You can use constructor parameters to inject server objects - `Context` , `Javalin` and `WsContext` (see [Websockets](../websockets.md) chapter) into your service classes. These objects give you access to the application configuration, its state, the current request and the user session.
+You can use constructor parameters to inject server objects - `Context` , `JavalinState` and `WsContext` (see [Websockets](../websockets.md) chapter) into your service classes. These objects give you access to the application configuration, its state, the current request and the user session.
 
 ```kotlin
 class AddressService(val ctx: Context) : IAddressService {
@@ -82,12 +82,12 @@ import dev.kilua.rpc.registerService
 import io.javalin.Javalin
 
 fun main() {
-    Javalin.create().start(8080).apply {
-        initRpc {
+    Javalin.create { config ->
+        config.initRpc {
             registerService<IAddressService> { AddressService() }
         }
-        applyRoutes(getServiceManager<IAddressService>())
-    }
+        config.applyRoutes(getServiceManager<IAddressService>())
+    }.start(8080)
 }
 ```
 
@@ -100,7 +100,6 @@ import dev.kilua.rpc.initRpc
 import io.javalin.Javalin
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
-import org.koin.ksp.generated.module
 
 @Module
 @ComponentScan
@@ -111,10 +110,12 @@ class AddressModule
 // }
 
 fun main() {
-    Javalin.create().start(8080).apply {
-        initRpc(AddressModule().module)
-        applyRoutes(getServiceManager<IAddressService>())
-    }
+    Javalin.create { config ->
+        config.initRpc {
+            modules(AddressModule().module())
+        }
+        config.applyRoutes(getServiceManager<IAddressService>())
+    }.start(8080)
 }
 ```
 
@@ -134,14 +135,15 @@ fun main() {
                 else -> ctx.status(HttpStatus.UNAUTHORIZED).json("Unauthorized")
             }
         }
-    }.start(8080).apply {
-        kvisionInit(ConfigModule(), DbModule())
-        applyRoutes(getServiceManager<IAddressService>(), setOf(ApiRole.AUTHORIZED))
-        applyRoutes(getServiceManager<IProfileService>(), setOf(ApiRole.AUTHORIZED))
-        applyRoutes(getServiceManager<IRegisterProfileService>(), setOf(ApiRole.ANYONE))
+        config.initRpc {
+            modules(ConfigModule().module(), DbModule().module())
+        }
+        config.applyRoutes(getServiceManager<IAddressService>(), setOf(ApiRole.AUTHORIZED))
+        config.applyRoutes(getServiceManager<IProfileService>(), setOf(ApiRole.AUTHORIZED))
+        config.applyRoutes(getServiceManager<IRegisterProfileService>(), setOf(ApiRole.ANYONE))
 
         // Security config
-        post("/login", { ctx ->
+        config.routes.post("/login", { ctx ->
             val username = ctx.formParam("username") ?: ""
             val password = ctx.formParam("password") ?: ""
             transaction {
@@ -155,10 +157,10 @@ fun main() {
                 } ?: ctx.status(HttpStatus.UNAUTHORIZED)
             }
         }, setOf(ApiRole.ANYONE))
-        get("/logout", { ctx ->
+        config.routes.get("/logout", { ctx ->
             ctx.req().session.invalidate()
             ctx.redirect("/", HttpStatus.FOUND)
         }, setOf(ApiRole.AUTHORIZED))
-    }
+    }.start(8080)
 }
 ```
