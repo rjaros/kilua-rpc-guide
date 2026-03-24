@@ -89,6 +89,18 @@ interface IAddressService {
 }
 ```
 
+You can also use `namedRoutes` parameter of the `@RpcService` annotation to use route names based on interface and method names.
+
+```kotlin
+@RpcService(namedRoutes = true)
+interface IAddressService {
+    suspend fun getAddressList(search: String?, sort: Sort): List<Address>
+    suspend fun addAddress(address: Address): Address
+    suspend fun updateAddress(id: Int, address: Address): Address
+    suspend fun deleteAddress(id: Int): Boolean
+}
+```
+
 {% hint style="info" %}
 Note: All Kilua RPC endpoint names (even those with user defined names) are prefixed with "/rpc/" to avoid potential conflicts with other endpoints.
 {% endhint %}

@@ -4,21 +4,7 @@ Kilua RPC supports different server-side frameworks - Ktor, Jooby, Spring Boot, 
 
 ## Dependencies
 
-You need JDK 21 to build Kilua RPC application. Your project should use standard Kotlin multiplatform layout, with separate sources sets for `common`, `jvm` and `js` and/or `wasmJs` code, located in separate directories: `src/commonMain` , `src/jvmMain`  and `src/jsMain` and/or `src/wasmJsMain`. You can also declare a shared `src/webMain` sources set if you want do develop for both `js` and `wasmJs` targets:
-
-```kotlin
-val webMain by creating {
-    dependsOn(commonMain)
-    dependencies {
-    }
-}
-val jsMain by getting {
-    dependsOn(webMain)
-}
-val wasmJsMain by getting {
-    dependsOn(webMain)
-}
-```
+You need JDK 21 to build Kilua RPC application. Your project should use standard Kotlin multiplatform layout, with separate sources sets for `common`, `jvm` and `js` and/or `wasmJs` code, located in separate directories: `src/commonMain` , `src/jvmMain`  and `src/jsMain` and/or `src/wasmJsMain`. You can also use `src/webMain` sources set if you want do develop for both `js` and `wasmJs` targets:
 
 You should apply KSP Gradle plugin as well as Kilua RPC Gradle plugin, which is responsible for code generation and provides tasks for building and packaging your application.
 
