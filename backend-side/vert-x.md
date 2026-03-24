@@ -135,7 +135,9 @@ class MainVerticle : AbstractVerticle() {
     override fun start() {
         val router = Router.router(vertx)
         val server = vertx.createHttpServer()
-        vertx.initRpc(router, server, getAllServiceManagers(), null, AddressModule().module)
+        vertx.initRpc(router, server, getAllServiceManagers(), null) {
+            modules(AddressModule().module())
+        }
         vertx.applyRoutes(router, getServiceManager<IAddressService>())
         vertx.createHttpServer().requestHandler(router).listen(8080)
     }
