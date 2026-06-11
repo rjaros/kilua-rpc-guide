@@ -4,10 +4,11 @@
 
 ## Build configuration
 
-Kilua RPC provides two different modules for Jooby:
+Kilua RPC provides three different modules for Jooby:
 
 * `kilua-rpc-jooby`, which doesn't use dependency injection (DI) and requires manual services registration,
 * `kilua-rpc-jooby-koin`, which uses [Koin](https://insert-koin.io/) dependency injection framework to access services implementations.
+* `kilua-rpc-jooby-metro`, which uses [Metro](https://github.com/zacsweers/metro) dependency injection framework to access services implementations.
 
 You need to add one of these modules to your project.
 
@@ -16,6 +17,7 @@ val commonMain by getting {
     dependencies {
         implementation("dev.kilua:kilua-rpc-jooby:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-jooby-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-jooby-metro:$kiluaRpcVersion")
     }
 }
 ```
@@ -43,11 +45,20 @@ class AddressService : IAddressService {
 }
 ```
 
-You can use `@Factory` annotation, if you use Koin and `koin-annotations` to configure dependency injection.
+When using Metro, you need to add some annotations and the `MetroRpcService` interface to your service class.
 
 ```kotlin
-@Factory
-class AddressService : IAddressService {
+import dev.kilua.rpc.MetroRpcService
+import dev.kilua.rpc.RpcAppScope
+import dev.zacsweers.metro.ClassKey
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+
+@Inject
+@ContributesIntoMap(RpcAppScope::class, binding = binding<MetroRpcService>())
+@ClassKey(IAddressService::class)
+class AddressService : IAddressService, MetroRpcService {
     // ...
 }
 ```
@@ -85,7 +96,7 @@ class AddressService : IAddressService {
 
 ### The main function
 
-This function is the application starting point. It's used to initialize and configure application modules and features. Minimal implementation for Kilua RPC integration contains `initRpc` and `applyRoutes` function calls.
+This function is the application starting point. It's used to initialize and configure application modules and features. Minimal implementation for Kilua RPC integration contains `applyRoutes` function calls and service initialization with an appropriate `initRpc` function.
 
 When using manual service registration, you call `initRpc` with a lambda function, which binds  interfaces with their implementations. Different overloads of `registerService` function allow injecting server objects into your service classes.
 
@@ -108,32 +119,50 @@ fun main(args: Array<String>) {
 }
 ```
 
-When using Koin, you call `initRpc` with a list of Koin modules. Constructor parameter injection is automatically supported by Koin.
+When using Koin, you call `initRpcKoin` to initialize Koin modules. Constructor parameter injection is automatically supported by Koin.
 
 ```kotlin
 import dev.kilua.rpc.applyRoutes
-import dev.kilua.rpc.getServiceManager
-import dev.kilua.rpc.initRpc
+import dev.kilua.rpc.getAllServiceManagers
+import dev.kilua.rpc.initRpcKoin
 import io.jooby.kt.runApp
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Module
+import org.koin.core.module.dsl.factoryOf
+import org.koin.dsl.bind
+import org.koin.dsl.module
 
-@Module
-@ComponentScan
-class AddressModule
-
-// val addressModule = module {             // manual Koin module declaration
-//    factoryOf(::AddressService)
-// }
+val addressModule = module {
+    factoryOf(::AddressService) bind IAddressService::class
+}
 
 fun main(args: Array<String>) {
     runApp(args) {
-        initRpc {
-            modules(AddressModule().module())
+        initRpcKoin {
+            modules(addressModule)
         }
-        routing {
-            applyRoutes(getServiceManager<IAddressService>())
-        }
+        applyRoutes(getServiceManager<IAddressService>())
+    }
+}
+```
+
+When using Metro, you call `initRpcMetro` to initialize Metro dependency graph. Constructor parameter injection is automatically supported by Metro.
+
+```kotlin
+import dev.kilua.rpc.RpcGraph
+import dev.kilua.rpc.applyRoutes
+import dev.kilua.rpc.getAllServiceManagers
+import dev.kilua.rpc.initRpcMetro
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.DependencyGraph
+import dev.zacsweers.metro.createGraph
+import io.jooby.kt.runApp
+
+@DependencyGraph(AppScope::class)
+interface AppGraph : RpcGraph.Factory
+
+fun main(args: Array<String>) {
+    runApp(args) {
+        initRpcMetro(createGraph<AppGraph>())
+        applyRoutes(getServiceManager<IAddressService>())
     }
 }
 ```
