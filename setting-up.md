@@ -4,7 +4,7 @@ Kilua RPC supports different server-side frameworks - Ktor, Jooby, Spring Boot, 
 
 ## Dependencies
 
-You need JDK 21 to build Kilua RPC application. Your project should use standard Kotlin multiplatform layout, with separate sources sets for `common`, `jvm` and `js` and/or `wasmJs` code, located in separate directories: `src/commonMain` , `src/jvmMain`  and `src/jsMain` and/or `src/wasmJsMain`. You can also use `src/webMain` sources set if you want do develop for both `js` and `wasmJs` targets:
+You need JDK 25 to build Kilua RPC application. Your project should use standard Kotlin multiplatform layout, with separate sources sets for `common`, `jvm` and `js` and/or `wasmJs` code, located in separate directories: `src/commonMain` , `src/jvmMain`  and `src/jsMain` and/or `src/wasmJsMain`. You can also use `src/webMain` sources set if you want do develop for both `js` and `wasmJs` targets:
 
 You should apply KSP Gradle plugin as well as Kilua RPC Gradle plugin, which is responsible for code generation and provides tasks for building and packaging your application.
 
@@ -27,14 +27,18 @@ val commonMain by getting {
     dependencies {
 //        implementation("dev.kilua:kilua-rpc-javalin:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-javalin-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-javalin-metro:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-jooby:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-jooby-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-jooby-metro:$kiluaRpcVersion")
         implementation("dev.kilua:kilua-rpc-ktor:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-ktor-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-ktor-metro:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-micronaut:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-spring-boot:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-vertx:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-vertx-koin:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-vertx-metro:$kiluaRpcVersion")
     }
 }
 ```
