@@ -141,7 +141,7 @@ class MainVerticle : AbstractVerticle() {
     override fun start() {
         val router = Router.router(vertx)
         val server = vertx.createHttpServer()
-        vertx.initRpcKoin(router, server, getAllServiceManagers(), null) {
+        vertx.initRpcKoin(router) {
             modules(addressModule)
         }
         vertx.applyRoutes(router, getServiceManager<IAddressService>())
@@ -170,7 +170,7 @@ class MainVerticle : AbstractVerticle() {
     override fun start() {
         val router = Router.router(vertx)
         val server = vertx.createHttpServer()
-        vertx.initRpcMetro(createGraph<AppGraph>(), router, server, getAllServiceManagers(), null)
+        vertx.initRpcMetro(createGraph<AppGraph>(), router)
         vertx.applyRoutes(router, getServiceManager<IAddressService>())
         server.requestHandler(router).listen(8080)
     }
