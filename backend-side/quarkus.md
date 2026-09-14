@@ -63,6 +63,10 @@ class AddressService : IAddressService {
 Note: The new instance of the service class will be created by Quarkus for every server request. Use session or request objects to store your state with appropriate scope.
 {% endhint %}
 
+{% hint style="info" %}
+Quarkus doesn't support traditional HTTP sessions out of the box, but you can use sessions from Vert.x by registering SessionHandler in the Vert.x router.
+{% endhint %}
+
 ### **Blocking code**
 
 Since Quarkus architecture is asynchronous and non-blocking, you should **never** block a thread in your application code. If you have to use some blocking code (e.g. blocking I/O, JDBC) always use the dedicated coroutine dispatcher.
