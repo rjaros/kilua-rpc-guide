@@ -11,6 +11,7 @@
   * [Javalin](backend-side/javalin.md)
   * [Vert.x](backend-side/vert-x.md)
   * [Micronaut](backend-side/micronaut.md)
+  * [Quarkus](backend-side/quarkus.md)
 * [Frontend side](frontend-side.md)
 * [Websockets](websockets.md)
 * [Exception handling](exception-handling.md)

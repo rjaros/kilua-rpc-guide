@@ -123,7 +123,7 @@ class WsService(private val webSocketSession: WebSocketSession) : IWsService {
 }
 ```
 
-With Vert.x you can inject `ServerWebSocket` object.
+With Vert.x or Quarkus you can inject `ServerWebSocket` object.
 
 ```kotlin
 class WsService(private val serverWebSocket: ServerWebSocket) : IWsService {

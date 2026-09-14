@@ -1,6 +1,6 @@
 # Setting up
 
-Kilua RPC supports different server-side frameworks - Ktor, Jooby, Spring Boot, Javalin, Vert.x and Micronaut - so you have to choose one of them for your needs. It's worth to mention, that `common` and `js`/`wasmJs` code of your application are exactly the same for all servers, as well as the greater part of the actual service implementation for the `jvm` target. The differences are tied to initialization code and additional server side functionalities (e.g. authentication).
+Kilua RPC supports different server-side frameworks - Ktor, Jooby, Spring Boot, Javalin, Vert.x, Micronaut and Quarkus - so you have to choose one of them for your needs. It's worth to mention, that `common` and `js`/`wasmJs` code of your application are exactly the same for all servers, as well as the greater part of the actual service implementation for the `jvm` target. The differences are tied to initialization code and additional server side functionalities (e.g. authentication).
 
 ## Dependencies
 
@@ -35,6 +35,7 @@ val commonMain by getting {
 //        implementation("dev.kilua:kilua-rpc-ktor-koin:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-ktor-metro:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-micronaut:$kiluaRpcVersion")
+//        implementation("dev.kilua:kilua-rpc-quarkus:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-spring-boot:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-vertx:$kiluaRpcVersion")
 //        implementation("dev.kilua:kilua-rpc-vertx-koin:$kiluaRpcVersion")
@@ -69,7 +70,7 @@ To run the backend application run one of these commands:
 gradlew.bat jvmRun                                  (on Windows)
 ```
 
-There are different levels of support when it comes to auto-reload. Javalin doesn't support auto-reload at all. Jooby, Vert.x and Micronaut have built-in auto-reload based on sources monitoring, so it works out of the box. In case of Ktor and Spring Boot auto-reload is based on the classpath monitoring, so you have to run another Gradle process for continuous build:
+There are different levels of support when it comes to auto-reload. Javalin doesn't support auto-reload at all. Spring-Boot, Micronaut and Quarkus support auto-reload, but architecture of the project forced by the Kotlin Gradle Plugin (additional application subproject) makes it impossible to use. Jooby and Vert.x have built-in auto-reload based on sources monitoring, so it works out of the box. In case of Ktor auto-reload is based on the classpath monitoring, so you have to run another Gradle process for continuous build:
 
 ```
 ### Ktor or Spring Boot
